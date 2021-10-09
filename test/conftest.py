@@ -12,5 +12,4 @@ def mock_pynentry(monkeypatch):
     # make sure that the mock's context manager get_pin function also always returns abc123
     m_pynentry.return_value.__enter__.return_value.get_pin.return_value = "abc123"
 
-    monkeypatch.setattr(bw, "pynentry", m_pynentry)
     monkeypatch.setattr(bw, "PynEntry", m_pynentry)
