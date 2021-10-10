@@ -24,7 +24,7 @@ def test_login(mock_bw):
     assert mock_bw.call_args is not None
     assert "username" in mock_bw.call_args.args[0]
 
-    assert session.key == b"session_key"
+    assert session.key == "session_key"
 
 
 def test_no_bitwarden(mock_bw):
@@ -74,7 +74,7 @@ def test_other_login_error(mock_bw):
 def test_optional_username(mock_bw):
     session = bw.Session("my_username")
     session.login()
-    assert session.key == b"session_key"
+    assert session.key == "session_key"
     assert "my_username" in mock_bw.call_args.args[0]
 
 
@@ -88,19 +88,19 @@ def test_no_username_error(mock_bw):
 def test_optional_passwd(mock_pynentry):
     session = bw.Session("user")
     session.login(passwd="my_password")
-    assert session.key == b"session_key"
+    assert session.key == "session_key"
     assert not mock_pynentry.called
 
 
 def test_returns_session_key():
     session = bw.Session()
-    assert session.login("user") == b"session_key"
+    assert session.login("user") == "session_key"
 
 
 def test_logout(mock_bw):
     session = bw.Session("user")
     session.login("user", "mypass")
-    assert session.key == b"session_key"
+    assert session.key == "session_key"
     session.logout()
     assert session.key is None
     assert "logout" in mock_bw.call_args.args[0]

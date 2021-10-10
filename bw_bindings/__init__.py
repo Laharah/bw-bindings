@@ -1,7 +1,9 @@
 import os
 import subprocess
-from typing import Union, Optional
+import json
+from typing import Union, Optional, Any, Dict
 from contextlib import ContextDecorator
+from functools import wraps
 
 from pynentry import PynEntry
 
@@ -20,6 +22,7 @@ class BitwardenNotLoggedInError(BitwardenError):
 
 # decorator for class methods to ensure that session is logged in
 def _logged_in(method):
+    @wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.key is None:
             raise BitwardenNotLoggedInError(
@@ -39,7 +42,9 @@ class Session:
         self.key = None
         self.username = username
 
-    def login(self, username: Optional[str] = None, passwd: Optional[str] = None):
+    def login(
+        self, username: Optional[str] = None, passwd: Optional[str] = None
+    ) -> str:
         if username is None:
             username = self.username
         if username is None:
@@ -75,6 +80,7 @@ class Session:
         if not session_key or bw.returncode != 0:
             raise BitwardenError('Problem logging in for "{username}".')
 
+        session_key = session_key.decode("utf8")
         self.key = session_key
         return session_key
 
@@ -93,11 +99,26 @@ class Session:
         self.key = None
 
     @_logged_in
-    def get(self, obj: str, ident: str):
+    def get(self, obj: str, ident: str) -> Union[Dict[str, Any], str]:
+        args = f"bw get {obj} {ident} --session {self.key}".split()
         bw = subprocess.Popen(
-            f"bw get {obj} {ident}".split(),
+            args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )
         reply, err = bw.communicate()
+        if bw.returncode != 0:
+            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
         return reply.decode("utf8")
+
+    def get_item(self, ident: str) -> dict[str, Any]:
+        args = f"bw get item {ident} --session {self.key}".split()
+        bw = subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        reply, err = bw.communicate()
+        if bw.returncode != 0:
+            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
+        return json.loads(reply)
