@@ -13,3 +13,4 @@ def mock_pynentry(monkeypatch):
     m_pynentry.return_value.__enter__.return_value.get_pin.return_value = "abc123"
 
     monkeypatch.setattr(bw, "PynEntry", m_pynentry)
+    return m_pynentry

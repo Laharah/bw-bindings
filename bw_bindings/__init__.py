@@ -73,7 +73,6 @@ class Session:
                 'Password for "{username}" is incorrect. Try Again.'
             )
         if not session_key or bw.returncode != 0:
-            print(f"{session_key=} {err=}")
             raise BitwardenError('Problem logging in for "{username}".')
 
         self.key = session_key
