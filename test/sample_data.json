@@ -1,0 +1,187 @@
+{
+    "encrypted": false,
+    "folders": [
+        {
+            "id": "3b78e9ec-5bf5-46b8-a7e1-acd101494dec",
+            "name": "Business"
+        },
+        {
+            "id": "2b8283a1-97f9-4161-894b-acd101494dec",
+            "name": "Car"
+        },
+        {
+            "id": "29fbc171-518a-4797-8c07-acd101494dec",
+            "name": "Development"
+        },
+        {
+            "id": "9a9388d8-e40b-4c95-a83e-acd101494dec",
+            "name": "Education"
+        },
+        {
+            "id": "210067af-8f9a-4250-b6c3-acd101494dec",
+            "name": "Email"
+        },
+        {
+            "id": "57a14433-e7a3-4aa4-a0ea-acd101494dec",
+            "name": "Entertainment"
+        },
+        {
+            "id": "0da50d95-861e-4256-aa4d-acd101494dec",
+            "name": "Finance"
+        },
+        {
+            "id": "b8d46e04-e961-48ec-8f62-acd101494dec",
+            "name": "Games"
+        },
+        {
+            "id": "ac140791-4818-4816-9480-acd101494dec",
+            "name": "Health"
+        },
+        {
+            "id": "773dfd6f-d90b-4d95-bd37-acd101494dec",
+            "name": "Shopping"
+        },
+        {
+            "id": "ca4a343f-dd1a-498c-b5d0-acd101494dec",
+            "name": "Social"
+        },
+        {
+            "id": "31ab70d5-1130-424b-a2cf-acd101494dec",
+            "name": "Travel"
+        }
+    ],
+    "items": [
+        {
+            "id": "6c7e36e1-7447-4147-86fe-acd101494dec",
+            "organizationId": null,
+            "folderId": "773dfd6f-d90b-4d95-bd37-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "amazon.com",
+            "notes": null,
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "https://www.amazon.com"
+                    }
+                ],
+                "username": "user@email.com",
+                "password": "shohBoo4",
+                "totp": null
+            },
+            "collectionIds": null
+        },
+        {
+            "id": "c616c8a2-2363-4dc3-ad91-acd101494dec",
+            "organizationId": null,
+            "folderId": "773dfd6f-d90b-4d95-bd37-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "amazon.com",
+            "notes": null,
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "https://www.amazon.com"
+                    }
+                ],
+                "username": "user@email.com",
+                "password": "vi0OoD5f",
+                "totp": null
+            },
+            "collectionIds": null
+        },
+        {
+            "id": "a56f02bd-5205-4301-a3d2-acd101494dec",
+            "organizationId": null,
+            "folderId": "210067af-8f9a-4250-b6c3-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "apple.com",
+            "notes": null,
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "https://appleid.apple.com"
+                    }
+                ],
+                "username": "user@email.com",
+                "password": "queiWae5",
+                "totp": null
+            },
+            "collectionIds": null
+        },
+        {
+            "id": "491be9f0-5586-4032-81f6-ad0b00fb65aa",
+            "organizationId": null,
+            "folderId": "57a14433-e7a3-4aa4-a0ea-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "www.last.fm",
+            "notes": "API key: dd3ceba98afd20a298c16e80c00fbfd64e06b401bbc77d8f2bc4e1a1ad5346c2",
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "https://www.last.fm/"
+                    }
+                ],
+                "username": "user",
+                "password": "ohs0oeTa",
+                "totp": null
+            },
+            "collectionIds": null
+        },
+        {
+            "id": "ce55b914-43d6-458c-bb50-acd101494dec",
+            "organizationId": null,
+            "folderId": "57a14433-e7a3-4aa4-a0ea-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "xbox.com",
+            "notes": null,
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "https://www.xbox.com/en-US/live"
+                    }
+                ],
+                "username": "user@email.com",
+                "password": "aijee9Ee",
+                "totp": null
+            },
+            "collectionIds": null
+        },
+        {
+            "id": "4f2375f5-432f-41b2-a308-acd101494dec",
+            "organizationId": null,
+            "folderId": "446dcedd-f8ae-4230-b872-acd101494dec",
+            "type": 1,
+            "reprompt": 0,
+            "name": "ycombinator.com",
+            "notes": null,
+            "favorite": false,
+            "login": {
+                "uris": [
+                    {
+                        "match": null,
+                        "uri": "http://news.ycombinator.com"
+                    }
+                ],
+                "username": "user",
+                "password": "aiM5edee",
+                "totp": null
+            },
+            "collectionIds": null
+        }
+    ]
+}

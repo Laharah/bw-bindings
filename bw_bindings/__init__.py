@@ -91,3 +91,13 @@ class Session:
         if bw.returncode != 0:
             raise BitwardenError("Problem with logging out of session.")
         self.key = None
+
+    @_logged_in
+    def get(self, obj: str, ident: str):
+        bw = subprocess.Popen(
+            f"bw get {obj} {ident}".split(),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        reply, err = bw.communicate()
+        return reply.decode("utf8")
