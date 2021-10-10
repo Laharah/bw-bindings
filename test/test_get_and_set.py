@@ -39,6 +39,7 @@ def bw_emulator(*args, mock_obj=None, **_):
     assert command[0] == "bw"
     args = command[1:]
     if args[0] == "get":
+        assert 'session_key' in command
         obj, key = args[1:3]
         if obj == "password":
             try:

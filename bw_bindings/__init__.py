@@ -36,8 +36,9 @@ def _logged_in(method):
     return wrapper
 
 
-# class representing a single bitwarden session
 class Session:
+    "class representing a single bitwarden session"
+
     def __init__(self, username: Optional[str] = None):
         self.key = None
         self.username = username
@@ -98,27 +99,26 @@ class Session:
             raise BitwardenError("Problem with logging out of session.")
         self.key = None
 
+    def _call(self, args):
+        args.extend(["--session", self.key])
+        bw = subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        reply, err = bw.communicate()
+        if bw.returncode != 0:
+            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
+        return reply
+
     @_logged_in
     def get(self, obj: str, ident: str) -> Union[Dict[str, Any], str]:
-        args = f"bw get {obj} {ident} --session {self.key}".split()
-        bw = subprocess.Popen(
-            args,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
-        reply, err = bw.communicate()
-        if bw.returncode != 0:
-            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
+        args = f"bw get {obj} {ident}".split()
+        reply = self._call(args)
         return reply.decode("utf8")
 
+    @_logged_in
     def get_item(self, ident: str) -> dict[str, Any]:
-        args = f"bw get item {ident} --session {self.key}".split()
-        bw = subprocess.Popen(
-            args,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
-        reply, err = bw.communicate()
-        if bw.returncode != 0:
-            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
+        args = f"bw get item {ident}".split()
+        reply = self._call(args)
         return json.loads(reply)
