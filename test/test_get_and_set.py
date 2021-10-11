@@ -68,7 +68,7 @@ def test_get(mock_comm):
 
 
 def test_get_err_with_no_login():
-    session = bw.Session()
+    session = bw.Session("username")
     with pytest.raises(bw.BitwardenNotLoggedInError):
         session.get("password", "xbox.com")
 

@@ -18,8 +18,8 @@ def mock_bw(monkeypatch):
 
 def test_login(mock_bw):
 
-    session = bw.Session()
-    session.login("username")
+    session = bw.Session("username")
+    session.login()
 
     assert mock_bw.call_args is not None
     assert "username" in mock_bw.call_args.args[0]
@@ -34,9 +34,9 @@ def test_no_bitwarden(mock_bw):
 
     mock_bw.side_effect = fnf
 
-    session = bw.Session()
+    session = bw.Session("user")
     with pytest.raises(bw.BitwardenError):
-        session.login("username")
+        session.login("password")
 
 
 def test_no_api_key(mock_bw):
@@ -44,7 +44,7 @@ def test_no_api_key(mock_bw):
         b"",
         b"Master password: [hidden]\x1b[27D\x1b[27C\n? Additional authentication required.\nAPI key client_secret: \x1b[23D\x1b[23C",
     )
-    session = bw.Session()
+    session = bw.Session("user")
     with pytest.raises(bw.BitwardenError):
         session.login("username")
 
@@ -55,7 +55,7 @@ def test_wrong_password(mock_bw):
         b"blahblah Username or password is incorrect. Try again.",
     )
     mock_bw().returncode = 1
-    session = bw.Session()
+    session = bw.Session("user")
     with pytest.raises(bw.BitwardenPasswordError):
         session.login("username")
 
@@ -66,7 +66,7 @@ def test_other_login_error(mock_bw):
         b"Some Other Unexpected Error.",
     )
     mock_bw().returncode = 1
-    session = bw.Session()
+    session = bw.Session("user")
     with pytest.raises(bw.BitwardenError):
         session.login("username")
 
@@ -78,18 +78,12 @@ def test_optional_username(mock_bw):
     assert "my_username" in mock_bw.call_args.args[0]
 
 
-def test_no_username_error(mock_bw):
-    session = bw.Session()
-    with pytest.raises(bw.BitwardenError):
-        session.login()
-    assert not mock_bw.called
-
-
 def test_optional_passwd(mock_pynentry):
     session = bw.Session("user")
     session.login(passwd="my_password")
     assert session.key == "session_key"
     assert not mock_pynentry.called
+
 
 def test_optional_constructor_password(mock_pynentry):
     session = bw.Session("user@email.com", passwd="abc123")
@@ -99,13 +93,13 @@ def test_optional_constructor_password(mock_pynentry):
 
 
 def test_returns_session_key():
-    session = bw.Session()
-    assert session.login("user") == "session_key"
+    session = bw.Session("user")
+    assert session.login("passwd") == "session_key"
 
 
 def test_logout(mock_bw):
     session = bw.Session("user")
-    session.login("user", "mypass")
+    session.login("mypass")
     assert session.key == "session_key"
     session.logout()
     assert session.key is None
@@ -113,8 +107,8 @@ def test_logout(mock_bw):
 
 
 def test_other_error(mock_bw):
-    session = bw.Session()
-    session.login("user", "pass")
+    session = bw.Session("user")
+    session.login("pass")
     mock_bw.return_value.returncode = 1
     with pytest.raises(bw.BitwardenError):
         session.logout()
