@@ -91,6 +91,12 @@ def test_optional_passwd(mock_pynentry):
     assert session.key == "session_key"
     assert not mock_pynentry.called
 
+def test_optional_constructor_password(mock_pynentry):
+    session = bw.Session("user@email.com", passwd="abc123")
+    session.login()
+    assert session.key == "session_key"
+    assert not mock_pynentry.called
+
 
 def test_returns_session_key():
     session = bw.Session()
@@ -104,13 +110,6 @@ def test_logout(mock_bw):
     session.logout()
     assert session.key is None
     assert "logout" in mock_bw.call_args.args[0]
-
-
-def test_double_logout(mock_bw):
-    session = bw.Session()
-    mock_bw.return_value.communicate.return_value = (b"", b"You are not logged in.")
-    with pytest.raises(bw.BitwardenNotLoggedInError):
-        session.logout()
 
 
 def test_other_error(mock_bw):

@@ -1,8 +1,6 @@
-import os
 import subprocess
 import json
 from typing import Union, Optional, Any, Dict
-from contextlib import ContextDecorator
 from functools import wraps
 
 from pynentry import PynEntry
@@ -39,9 +37,10 @@ def _logged_in(method):
 class Session:
     "class representing a single bitwarden session"
 
-    def __init__(self, username: Optional[str] = None):
+    def __init__(self, username: Optional[str] = None, passwd: Optional[str] = None):
         self.key = None
         self.username = username
+        self.passwd = passwd
 
     def login(
         self, username: Optional[str] = None, passwd: Optional[str] = None
@@ -52,10 +51,12 @@ class Session:
             raise BitwardenError("No username defined for login operation.")
 
         if passwd is None:
+            passwd = self.passwd 
+        if passwd is None:
             with PynEntry() as p:
                 p.description = "Enter your Bitwarden Password"
                 p.prompt = ">"
-                passwd = p.get_pin() + "\n"
+                passwd = p.get_pin() + "\n" # type: ignore
 
         try:
             bw = subprocess.Popen(
@@ -64,37 +65,35 @@ class Session:
         except FileNotFoundError as e:
             raise BitwardenError("Bitwarden CLI `bw` could not be found.") from e
 
-        passwd: str
-        session_key, err = bw.communicate(passwd.encode("utf8"), timeout=40)
+        session_key, err = bw.communicate(passwd.encode("utf8"), timeout=40)  # type: ignore
+        err = err.decode('utf8')
 
-        if b"API key client_secret" in err:
+        if "API key client_secret" in err:
             raise BitwardenError(
                 (
                     "CLI must be authenticated with API key: "
                     "https://bitwarden.com/help/article/cli-auth-challenges/"
                 )
             )
-        if b"Username or password is incorrect" in err:
+        if "Username or password is incorrect" in err:
             raise BitwardenPasswordError(
                 'Password for "{username}" is incorrect. Try Again.'
             )
         if not session_key or bw.returncode != 0:
-            raise BitwardenError('Problem logging in for "{username}".')
+            raise BitwardenError(f'Problem logging in: {err}')
 
         session_key = session_key.decode("utf8")
         self.key = session_key
         return session_key
 
-    @_logged_in
     def logout(self):
         bw = subprocess.Popen(
             f"bw logout --session {self.key}".split(), stdout=-1, stderr=-1
         )
         _, err = bw.communicate(timeout=40)
         if b"not logged in" in err:
-            raise BitwardenError(
-                "Cannot logout, Bitwaren session is not currently logged in."
-            )
+            self.key = None
+            return
         if bw.returncode != 0:
             raise BitwardenError("Problem with logging out of session.")
         self.key = None
