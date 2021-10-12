@@ -39,7 +39,7 @@ def bw_emulator(*args, mock_obj=None, **_):
     assert command[0] == "bw"
     args = command[1:]
     if args[0] == "get":
-        assert 'session_key' in command
+        assert "session_key" in command
         obj, key = args[1:3]
         if obj == "password":
             try:
@@ -49,7 +49,17 @@ def bw_emulator(*args, mock_obj=None, **_):
         if obj == "item":
             canidates = [item for item in VAULT["items"] if item["name"] == key]
             if len(canidates) == 1:
-                return json.dumps(canidates[0]), b""
+                return json.dumps(canidates[0]).encode("utf8"), b""
+        if obj == "template":
+            return (
+                (
+                    b'{"organizationId":null,"collectionIds":null,"folderId":null,'
+                    b'"type":1,"name":"Item name","notes":"Some notes about this item.",'
+                    b'"favorite":false,"fields":[],"login":null,"secureNote":null,'
+                    b'"card":null,"identity":null,"reprompt":0}'
+                ),
+                b"",
+            )
     if args[0] == "login":
         return b"session_key", b""
 
@@ -78,6 +88,7 @@ def test_get_not_found():
     session.login()
     with pytest.raises(bw.BitwardenError):
         session.get("password", "does_not_exsist")
+        session.get("password", "github")
 
 
 def test_get_item():
@@ -86,3 +97,11 @@ def test_get_item():
     item = session.get_item("xbox.com")
     assert item["name"] == "xbox.com"
     assert item["login"]["username"] == "user@email.com"
+
+
+def test_get_json_item():
+    session = bw.Session("user")
+    session.login()
+    template = session.get("template", "item")
+    assert isinstance(template, dict)
+    assert template["name"] == "Item name"

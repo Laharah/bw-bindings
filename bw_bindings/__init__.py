@@ -1,6 +1,6 @@
 import subprocess
 import json
-from typing import Union, Optional, Any, Dict
+from typing import Union, Optional, Any, Dict, Literal
 from functools import wraps
 
 from pynentry import PynEntry
@@ -17,6 +17,22 @@ class BitwardenPasswordError(BitwardenError):
 class BitwardenNotLoggedInError(BitwardenError):
     pass
 
+
+BWObject = Literal[
+    "item",
+    "username",
+    "password",
+    "uri",
+    "totp",
+    "exposed",
+    "attachement",
+    "folder",
+    "collection",
+    "organization",
+    "org_collection",
+    "template",
+    "fingerprint",
+]
 
 # decorator for class methods to ensure that session is logged in
 def _logged_in(method):
@@ -54,7 +70,10 @@ class Session:
 
         try:
             bw = subprocess.Popen(
-                f"bw login {self.username} --raw".split(), stdin=-1, stdout=-1, stderr=-1
+                f"bw login {self.username} --raw".split(),
+                stdin=-1,
+                stdout=-1,
+                stderr=-1,
             )
         except FileNotFoundError as e:
             raise BitwardenError("Bitwarden CLI `bw` could not be found.") from e
@@ -105,13 +124,19 @@ class Session:
         return reply
 
     @_logged_in
-    def get(self, obj: str, ident: str) -> Union[Dict[str, Any], str]:
+    def get(self, obj: BWObject, ident: str) -> Union[Dict[str, Any], str]:
         args = f"bw get {obj} {ident}".split()
         reply = self._call(args)
-        return reply.decode("utf8")
+        print(type(reply))
+        reply = reply.decode("utf8")
+        try:
+            reply = json.loads(reply)
+        except json.decoder.JSONDecodeError:
+            pass
+        return reply
 
     @_logged_in
     def get_item(self, ident: str) -> dict[str, Any]:
-        args = f"bw get item {ident}".split()
-        reply = self._call(args)
-        return json.loads(reply)
+        reply = self.get("item", ident)
+        assert isinstance(reply, dict)
+        return reply
