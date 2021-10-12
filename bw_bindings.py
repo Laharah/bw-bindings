@@ -161,6 +161,7 @@ class Session:
         assert isinstance(reply, dict)
         return reply
 
+    @_logged_in
     def list(
         self,
         obj: Literal[

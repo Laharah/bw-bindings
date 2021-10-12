@@ -137,3 +137,8 @@ def test_list_kwargs(mock_bw):
     assert "--folderid" in mock_bw.call_args.args[0]
     idx = mock_bw.call_args.args[0].index("--folderid")
     assert mock_bw.call_args.args[0][idx + 1] == "1234"
+
+def test_list_logged_in():
+    session = bw.Session("user")
+    with pytest.raises(bw.BitwardenNotLoggedInError):
+        session.list("items")
