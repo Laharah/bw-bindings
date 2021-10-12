@@ -48,8 +48,10 @@ BWTemplates = Literal[
     "org-collection",
 ]
 
-# decorator for class methods to ensure that session is logged in
+
 def _logged_in(method):
+    "decorator for class methods to ensure that session is logged in"
+
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.key is None:
@@ -73,6 +75,8 @@ class Session:
         self.passwd = passwd
 
     def login(self, passwd: Optional[str] = None) -> str:
+        """Log into bitwarden and save the session key for use.
+        If no password has been supplied, prompt user with Pinentry"""
 
         if passwd is None:
             passwd = self.passwd
@@ -114,6 +118,8 @@ class Session:
         return session_key
 
     def logout(self):
+        "Logout of BitWarden session and delete the session key"
+
         bw = subprocess.Popen(
             f"bw logout --session {self.key}".split(), stdout=-1, stderr=-1
         )
@@ -126,6 +132,8 @@ class Session:
         self.key = None
 
     def _call(self, args):
+        "Helper method for adding session key and making Bitwarden CLI call."
+
         args.extend(["--session", self.key])
         bw = subprocess.Popen(
             args,
@@ -140,6 +148,9 @@ class Session:
 
     @_logged_in
     def get(self, obj: BWObject, ident: str) -> Union[Dict[str, Any], str]:
+        """Bitwarden `get` call. Supply CLI with the passed arguments and
+        decode any json replies"""
+
         args = f"bw get {obj} {ident}".split()
         reply = self._call(args)
         reply = reply.decode("utf8")
@@ -151,12 +162,15 @@ class Session:
 
     @_logged_in
     def get_item(self, ident: str) -> dict[str, Any]:
+        "Convieninece method for `get`ing items. Equivalent to s.get('item', ident)."
         reply = self.get("item", ident)
         assert isinstance(reply, dict)
         return reply
 
     @_logged_in
     def get_template(self, ident: BWTemplates) -> dict[str, Any]:
+        "Convieninece metod for `get`ing templates for editing/creation."
+
         reply = self.get("template", ident)
         assert isinstance(reply, dict)
         return reply
@@ -177,6 +191,7 @@ class Session:
         trash: bool = False,
         **kwargs,
     ) -> list[dict[str, Any]]:
+        "Make BitwardenCLI `list` call. Accepts CLI flags as key-word arguments."
 
         kwargs["search"] = search
         kwargs["trash"] = trash
