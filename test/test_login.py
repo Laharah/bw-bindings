@@ -112,3 +112,11 @@ def test_other_error(mock_bw):
     mock_bw.return_value.returncode = 1
     with pytest.raises(bw.BitwardenError):
         session.logout()
+
+def test_session_context(mock_bw):
+    with bw.Session("user", "pass") as session:
+        assert session.key == "session_key"
+    assert mock_bw.call_count == 2
+    calls_args = [call.args[0] for call in mock_bw.call_args_list]
+    assert "login" in calls_args[0]
+    assert "logout" in calls_args[1]

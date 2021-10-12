@@ -34,6 +34,20 @@ BWObject = Literal[
     "fingerprint",
 ]
 
+BWTemplates = Literal[
+    "item",
+    "item.field",
+    "item.login",
+    "item.login.uri",
+    "item.card",
+    "item.identity",
+    "item.securenote",
+    "folder",
+    "collection",
+    "item-collections",
+    "org-collection",
+]
+
 # decorator for class methods to ensure that session is logged in
 def _logged_in(method):
     @wraps(method)
@@ -115,19 +129,19 @@ class Session:
         args.extend(["--session", self.key])
         bw = subprocess.Popen(
             args,
-            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         reply, err = bw.communicate()
         if bw.returncode != 0:
-            raise BitwardenError(f'Command: "{args}" StdErr: "{err}"')
+            err = err.decode("utf8", "ignore")
+            raise BitwardenError(f'Command: "{args}"\nStdErr: "{err}"')
         return reply
 
     @_logged_in
     def get(self, obj: BWObject, ident: str) -> Union[Dict[str, Any], str]:
         args = f"bw get {obj} {ident}".split()
         reply = self._call(args)
-        print(type(reply))
         reply = reply.decode("utf8")
         try:
             reply = json.loads(reply)
@@ -140,3 +154,45 @@ class Session:
         reply = self.get("item", ident)
         assert isinstance(reply, dict)
         return reply
+
+    @_logged_in
+    def get_template(self, ident: BWTemplates) -> dict[str, Any]:
+        reply = self.get("template", ident)
+        assert isinstance(reply, dict)
+        return reply
+
+    def list(
+        self,
+        obj: Literal[
+            "items",
+            "folders",
+            "collections",
+            "organization",
+            "org-collections",
+            "org-members",
+        ],
+        search: Optional[str] = None,
+        *,
+        trash: bool = False,
+        **kwargs,
+    ) -> list[dict[str, Any]]:
+
+        kwargs["search"] = search
+        kwargs["trash"] = trash
+
+        flags = []
+        for key, value in kwargs.items():
+            if not value:
+                continue
+            flags.extend([f"--{key}", value])
+        args = f"bw list {obj}".split() + flags
+        reply = json.loads(self._call(args))
+        assert isinstance(reply, list)
+        return reply
+
+    def __enter__(self):
+        self.login()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.logout()

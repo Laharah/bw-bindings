@@ -63,6 +63,9 @@ def bw_emulator(*args, mock_obj=None, **_):
     if args[0] == "login":
         return b"session_key", b""
 
+    if args[0] == "list":
+        return json.dumps(VAULT["items"][:2]).encode("utf8"), b""
+
     mock_obj.return_value.returncode = 1
     return b"", b"error"
 
@@ -105,3 +108,32 @@ def test_get_json_item():
     template = session.get("template", "item")
     assert isinstance(template, dict)
     assert template["name"] == "Item name"
+
+
+def test_get_template():
+    session = bw.Session("user")
+    session.login()
+    template = session.get_template("item")
+    assert isinstance(template, dict)
+    assert template["name"] == "Item name"
+
+
+def test_list():
+    session = bw.Session("user")
+    session.login()
+    items = session.list("items")
+    assert isinstance(items, list)
+    assert items[0]["name"] == "amazon.com"
+
+
+def test_list_kwargs(mock_bw):
+    session = bw.Session("user")
+    session.login()
+    items = session.list("items", "amazon")
+    assert "--search" in mock_bw.call_args.args[0]
+    items = session.list("items")
+    assert "--search" not in mock_bw.call_args.args[0]
+    session.list("items", "amazon", folderid="1234")
+    assert "--folderid" in mock_bw.call_args.args[0]
+    idx = mock_bw.call_args.args[0].index("--folderid")
+    assert mock_bw.call_args.args[0][idx + 1] == "1234"
