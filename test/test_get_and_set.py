@@ -129,9 +129,9 @@ def test_list():
 def test_list_kwargs(mock_bw):
     session = bw.Session("user")
     session.login()
-    items = session.list("items", "amazon")
+    _ = session.list("items", "amazon")
     assert "--search" in mock_bw.call_args.args[0]
-    items = session.list("items")
+    _ = session.list("items")
     assert "--search" not in mock_bw.call_args.args[0]
     session.list("items", "amazon", folderid="1234")
     assert "--folderid" in mock_bw.call_args.args[0]
