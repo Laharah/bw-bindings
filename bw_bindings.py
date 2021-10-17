@@ -97,6 +97,7 @@ class Session:
             raise BitwardenError("Bitwarden CLI `bw` could not be found.") from e
 
         session_key, err = bw.communicate(passwd.encode("utf8"), timeout=40)  # type: ignore
+        del passwd # Don't let sensitive info hang around
         err = err.decode("utf8")
 
         if "API key client_secret" in err:
