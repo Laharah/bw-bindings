@@ -1,9 +1,12 @@
-import subprocess
 import json
-from typing import Union, Optional, Any, Dict, Literal
+import os
+import shutil
+import subprocess
 from functools import wraps
+from typing import Any, Dict, Literal, Optional, Union
 
 from pynentry import PynEntry
+
 
 # generic bitwarden bindings error
 class BitwardenError(Exception):
@@ -69,10 +72,24 @@ def _logged_in(method):
 class Session:
     "class representing a single bitwarden session"
 
-    def __init__(self, username: str, passwd: Optional[str] = None):
+    def __init__(
+        self,
+        username: str,
+        passwd: Optional[str] = None,
+        executable: Optional[os.PathLike] = None,
+        timeout=40,
+    ):
         self.key = None
         self.username = username
         self.passwd = passwd
+        if executable is None:
+            _exe = shutil.which("bw")
+        else:
+            _exe = executable
+        if not _exe:
+            raise BitwardenError("Bitwarden CLI executable `bw` could not be found.")
+        self.executable = str(_exe)
+        self.timeout = timeout
 
     def login(self, passwd: Optional[str] = None) -> str:
         """Log into bitwarden and save the session key for use.
@@ -86,18 +103,21 @@ class Session:
                 p.prompt = ">"
                 passwd = p.get_pin() + "\n"  # type: ignore
 
+        args = f"login {self.username} --raw".split()
         try:
             bw = subprocess.Popen(
-                f"bw login {self.username} --raw".split(),
+                [self.executable] + args,
                 stdin=-1,
                 stdout=-1,
                 stderr=-1,
             )
         except FileNotFoundError as e:
-            raise BitwardenError("Bitwarden CLI `bw` could not be found.") from e
+            raise BitwardenError(
+                f"Bitwarden CLI `{self.executable}` could not be found."
+            ) from e
 
-        session_key, err = bw.communicate(passwd.encode("utf8"), timeout=40)  # type: ignore
-        del passwd # Don't let sensitive info hang around
+        session_key, err = bw.communicate(passwd.encode("utf8"), timeout=self.timeout)  # type: ignore
+        del passwd  # Don't let sensitive info hang around
         err = err.decode("utf8")
 
         if "API key client_secret" in err:
@@ -122,9 +142,11 @@ class Session:
         "Logout of BitWarden session and delete the session key"
 
         bw = subprocess.Popen(
-            f"bw logout --session {self.key}".split(), stdout=-1, stderr=-1
+            [self.executable] + f"logout --session {self.key}".split(),
+            stdout=-1,
+            stderr=-1,
         )
-        _, err = bw.communicate(timeout=40)
+        _, err = bw.communicate(timeout=self.timeout)
         if b"not logged in" in err:
             self.key = None
             return
@@ -135,13 +157,19 @@ class Session:
     def _call(self, args):
         "Helper method for adding session key and making Bitwarden CLI call."
 
+        args = [self.executable] + args
         args.extend(["--session", self.key])
         bw = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env={**os.environ, "BW_SESSION": str(self.key)},
         )
-        reply, err = bw.communicate()
+        try:
+            reply, err = bw.communicate(timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            bw.kill()
+            raise
         if bw.returncode != 0:
             err = err.decode("utf8", "ignore")
             raise BitwardenError(f'Command: "{args}"\nStdErr: "{err}"')
@@ -152,7 +180,7 @@ class Session:
         """Bitwarden `get` call. Supply CLI with the passed arguments and
         decode any json replies"""
 
-        args = f"bw get {obj} {ident}".split()
+        args = f"get {obj} {ident}".split()
         reply = self._call(args)
         reply = reply.decode("utf8")
         try:
@@ -202,7 +230,7 @@ class Session:
             if not value:
                 continue
             flags.extend([f"--{key}", value])
-        args = f"bw list {obj}".split() + flags
+        args = f"list {obj}".split() + flags
         reply = json.loads(self._call(args))
         assert isinstance(reply, list)
         return reply
