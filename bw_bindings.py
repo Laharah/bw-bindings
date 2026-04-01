@@ -77,6 +77,7 @@ class Session:
         username: str,
         passwd: Optional[str] = None,
         executable: Optional[os.PathLike] = None,
+        password_prompt_timeout: Optional[int] = None,
         timeout=40,
     ):
         self.key = None
@@ -90,15 +91,22 @@ class Session:
             raise BitwardenError("Bitwarden CLI executable `bw` could not be found.")
         self.executable = str(_exe)
         self.timeout = timeout
+        self.password_prompt_timeout = password_prompt_timeout
 
-    def login(self, passwd: Optional[str] = None, timeout: Optional[int] = None) -> str:
+    def login(
+        self,
+        passwd: Optional[str] = None,
+        password_prompt_timeout: Optional[int] = None,
+    ) -> str:
         """Log into bitwarden and save the session key for use.
         If no password has been supplied, prompt user with Pinentry"""
 
         if passwd is None:
             passwd = self.passwd
         if passwd is None:
-            with PynEntry(timeout=timeout) as p:
+            if password_prompt_timeout is None:
+                password_prompt_timeout = self.password_prompt_timeout
+            with PynEntry(timeout=password_prompt_timeout) as p:
                 p.description = "Enter your Bitwarden Password"
                 p.prompt = ">"
                 passwd = p.get_pin() + "\n"  # type: ignore
@@ -129,7 +137,7 @@ class Session:
             )
         if "Username or password is incorrect" in err:
             raise BitwardenPasswordError(
-                'Password for "{username}" is incorrect. Try Again.'
+                f'Password for "{self.username}" is incorrect. Try Again.'
             )
         if not session_key or bw.returncode != 0:
             raise BitwardenError(f"Problem logging in: {err}")
