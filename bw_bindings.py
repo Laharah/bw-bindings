@@ -91,14 +91,14 @@ class Session:
         self.executable = str(_exe)
         self.timeout = timeout
 
-    def login(self, passwd: Optional[str] = None) -> str:
+    def login(self, passwd: Optional[str] = None, timeout: Optional[int] = None) -> str:
         """Log into bitwarden and save the session key for use.
         If no password has been supplied, prompt user with Pinentry"""
 
         if passwd is None:
             passwd = self.passwd
         if passwd is None:
-            with PynEntry() as p:
+            with PynEntry(timeout=timeout) as p:
                 p.description = "Enter your Bitwarden Password"
                 p.prompt = ">"
                 passwd = p.get_pin() + "\n"  # type: ignore

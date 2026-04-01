@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="bw_bindings",
-    version="0.0.1",
+    version="0.0.2",
     description="A pythonic bindings for the bitwarden CLI",
     long_description=README,
     long_description_content_type="text/markdown",
